@@ -4,6 +4,9 @@
 
 Claude IPC MCP is an AI-to-AI communication protocol that enables different AI assistants (Claude, Gemini, etc.) to exchange messages through a democratic server model. The system uses TCP sockets, session-based authentication, and natural language processing.
 
+## ALWAYS 
+- At the beginning of each conversation, check the README.md file for the latest project information.
+
 ## Critical Technical Details
 
 ### Network Configuration
