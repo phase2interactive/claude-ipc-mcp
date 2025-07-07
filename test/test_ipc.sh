@@ -61,10 +61,7 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 echo ""
 echo "Testing registration with uv..."
 cd "$REPO_DIR"
-if [ ! -d ".venv" ]; then
-    echo "Creating uv environment..."
-    uv sync
-fi
+uv sync
 uv run python tools/ipc_register.py test-instance
 if [ $? -eq 0 ]; then
     echo "✓ Registration successful"
