@@ -1,35 +1,38 @@
 #!/bin/bash
-# Install Claude IPC MCP
+# Install Claude IPC MCP with uv
 
 echo "==========================================="
-echo "Claude IPC MCP Installation"
+echo "Claude IPC MCP Installation (using uv)"
 echo "==========================================="
 
-# Check for Python
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Python 3 is required but not found"
+# Check for uv
+if ! command -v uv &> /dev/null; then
+    echo "❌ uv is required but not found"
+    echo "Install it with: curl -LsSf https://astral.sh/uv/install.sh | sh"
     exit 1
 fi
-
-# Create virtual environment
-echo "Creating virtual environment..."
-python3 -m venv ~/.claude-ipc-env
-
-# Activate and install mcp
-echo "Installing MCP package..."
-source ~/.claude-ipc-env/bin/activate
-pip install mcp
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
-# Add MCP to Claude Code
+# Change to repo directory
+cd "$REPO_DIR"
+
+# Create virtual environment with uv
+echo "Creating virtual environment with uv..."
+uv venv
+
+# Install dependencies
+echo "Installing dependencies..."
+uv pip sync requirements.txt
+
+# Add MCP to Claude Code using uv python
 echo ""
 echo "Adding IPC MCP to Claude Code..."
 echo "Run this command:"
 echo ""
-echo "claude mcp add claude-ipc -s user -- ~/.claude-ipc-env/bin/python $REPO_DIR/src/claude_ipc_server.py"
+echo "claude mcp add claude-ipc -s user -- $REPO_DIR/.venv/bin/python $REPO_DIR/src/claude_ipc_server.py"
 echo ""
 echo "Then restart Claude Code for the MCP to load!"
 echo "==========================================="
