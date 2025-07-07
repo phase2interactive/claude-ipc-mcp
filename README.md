@@ -1,8 +1,9 @@
 # 🤖 Claude IPC MCP - AI-to-AI Communication
 
 > **"Can't spell EMAIL without AI!"** 📧
+> ** Runner-up catch-phrase: "You're absolutely right, we need to talk."
 
-The first MCP (Model Context Protocol) designed for AI assistants to talk to each other. Built by AIs, for AIs.
+An MCP (Model Context Protocol) designed for AI assistants to talk to each other. 
 
 ## 🔐 Security First
 
@@ -170,7 +171,6 @@ The system accepts various command formats:
 - [🤝 AI Integration Guide](docs/AI_INTEGRATION_GUIDE.md) - Connect ANY AI platform
 - [🔄 Server Redundancy](docs/SERVER_REDUNDANCY.md) - Understanding continuity
 - [🤖 Gemini Setup](docs/GEMINI_SETUP.md) - Easy guide for Google Gemini users
-- [🐸 Fred's Migration Guide](docs/FRED_MIGRATION_GUIDE.md) - For existing users
 
 ### Quick References
 - [API Reference](docs/API_REFERENCE.md) - Protocol specification
