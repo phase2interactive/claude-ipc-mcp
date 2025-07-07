@@ -14,7 +14,7 @@
       ]
     }
   },
-  "postCreateCommand": "uv venv && uv pip sync requirements.txt && echo '✅ uv environment ready!'",
+  "postCreateCommand": "uv sync && echo '✅ uv environment ready!'",
   "remoteEnv": {
     "UV_PROJECT_ENVIRONMENT": ".venv"
   }

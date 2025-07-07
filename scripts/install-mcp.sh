@@ -19,13 +19,9 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 # Change to repo directory
 cd "$REPO_DIR"
 
-# Create virtual environment with uv
-echo "Creating virtual environment with uv..."
-uv venv
-
-# Install dependencies
-echo "Installing dependencies..."
-uv pip sync requirements.txt
+# Install dependencies with uv
+echo "Installing dependencies with uv sync..."
+uv sync
 
 # Add MCP to Claude Code using uv python
 echo ""

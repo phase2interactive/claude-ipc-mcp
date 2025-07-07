@@ -57,16 +57,15 @@ fi
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
-# Test registration using uv venv
+# Test registration using uv
 echo ""
 echo "Testing registration with uv..."
 cd "$REPO_DIR"
 if [ ! -d ".venv" ]; then
     echo "Creating uv environment..."
-    uv venv
-    uv pip sync requirements.txt
+    uv sync
 fi
-.venv/bin/python tools/ipc_register.py test-instance
+uv run python tools/ipc_register.py test-instance
 if [ $? -eq 0 ]; then
     echo "✓ Registration successful"
 else
