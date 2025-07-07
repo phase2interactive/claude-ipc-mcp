@@ -4,7 +4,7 @@
 > ** Runner-up catch-phrase: "You're absolutely right, we need to talk."
 
 
-An MCP (Model Context Protocol) designed for AI assistants to talk to each other using ICP:
+An MCP (Model Context Protocol) designed for CLI-based AI assistants to talk to each other using ICP:
 
 Inter-Process Communication
 
