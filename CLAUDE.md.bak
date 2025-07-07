@@ -1,0 +1,118 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Claude IPC MCP is an Inter-Process Communication system that enables AI assistants to send messages to each other asynchronously. It implements a democratic server architecture where the first AI to start becomes the broker, with automatic failover if the broker crashes.
+
+## ALWAYS 
+- At the beginning of each conversation, check the README.md file for the latest project information.
+
+## Common Development Commands
+
+### Environment Setup
+```bash
+# Set the required shared secret (REQUIRED for security)
+export IPC_SHARED_SECRET="your-secret-key-here"
+
+# Install MCP for Claude Code (now uses uv)
+./scripts/install-mcp.sh
+
+# Create Python environment with uv
+uv venv
+uv pip sync requirements.txt  # Or just: uv sync
+
+# For direct execution without activation
+uvx --from . python src/claude_ipc_server.py
+```
+
+### Testing Commands
+```bash
+# Run integration tests
+./test/test_ipc.sh
+
+# Run security tests
+python3 test/test_security.py
+
+# Test individual tools manually with uvx
+uvx --from . python tools/ipc_register.py test-instance
+uvx --from . python tools/ipc_send.py target-instance "Test message"
+uvx --from . python tools/ipc_check.py
+```
+
+### Development Workflow
+```bash
+# Check if server is running
+netstat -an | grep 9876
+
+# Format code (install dev dependencies first)
+uv pip install black
+black src/ tools/ test/
+
+# Generate ctags for navigation
+ctags -R --languages=python --python-kinds=-i --exclude=.venv --exclude=__pycache__ --exclude=.git .
+```
+
+## Architecture & Code Structure
+
+### Core Components
+
+1. **MCP Server** (`src/claude_ipc_server.py`)
+   - Implements the MCP protocol for Claude Code integration
+   - Handles natural language command interpretation
+   - Manages session-based authentication
+
+2. **Python Tools** (`tools/`)
+   - Standalone scripts for non-Claude AIs
+   - Each tool corresponds to an MCP command
+   - Can be used directly or through natural language
+
+3. **Message Broker**
+   - TCP socket server on localhost:9876
+   - First-come-first-serve broker election
+   - Handles message queuing and delivery
+   - Automatic large message file handling (>10KB)
+
+### Security Architecture
+
+- **Session-based authentication**: Each instance gets a session token after registration
+- **SHA256 hashing**: Used for authentication tokens
+- **Rate limiting**: Prevents abuse and flooding
+- **Local-only by default**: Server binds to 127.0.0.1
+
+### Key Design Decisions
+
+1. **Democratic Architecture**: No dedicated server - any AI can be the broker
+2. **Asynchronous Messaging**: Messages queue for offline recipients
+3. **Natural Language First**: Commands designed for AI understanding
+4. **Minimal Dependencies**: Only requires Python stdlib + mcp package
+
+## Natural Language Command Reference
+
+The MCP accepts various natural language formats:
+- `Register this instance as [name]`
+- `Send message to [target]: [message]` or `msg [target]: [message]`
+- `Check my messages` or `any messages?` or `msgs?`
+- `List all instances` or `who's online?`
+- `Rename to [new-name]`
+- `Broadcast: [message]`
+
+## Important Implementation Notes
+
+1. **Message Persistence**: Messages are retained for 7 days in memory
+2. **Instance Renaming**: Old names forward to new names for 2 hours
+3. **Large Messages**: Automatically saved to `/tmp/ipc-messages/large-messages/`
+4. **Session Tokens**: Stored in `/tmp/ipc-sessions/` directory
+5. **Broker Election**: If broker crashes, next sender becomes new broker
+
+## Testing Approach
+
+- Integration tests use shell scripts to test full workflows
+- Security tests verify authentication and session management
+- Manual testing supported through Python tools
+- No unit test framework currently - tests are functional/integration style
+
+## Hook Integration
+
+Claude Hooks can be configured for automatic message checking, though hook output doesn't appear in Claude's interface. See `docs/CLAUDE_HOOKS.md` for setup details and limitations.
