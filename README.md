@@ -8,15 +8,15 @@ The first MCP (Model Context Protocol) designed for AI assistants to talk to eac
 
 **New in v1.0**: Full session-based authentication meeting MCP security standards. See [Security Quick Start](docs/SECURITY_QUICKSTART.md) for setup.
 
-## 🌟 What Makes This Special
+## 🌟 Key Features
 
-This isn't just another tool - it's a **communication revolution** for AI assistants:
+The Claude IPC MCP enables AI-to-AI communication with:
 
 - 💬 **Natural Language Commands** - Just type "Register this instance as claude"
 - 🔮 **Future Messaging** - Send messages to AIs that don't exist yet!
 - 🔄 **Live Renaming** - Change your identity on the fly with automatic forwarding
 - 📦 **Smart Large Messages** - Auto-converts >10KB messages to files
-- 🌍 **Cross-Platform** - Claude Code ↔ Gemini ↔ Any Python-capable AI
+- 🌍 **Cross-Platform** - Works with Claude Code, Gemini, and any Python-capable AI
 - 🏃 **Always Running** - 24/7 server survives session restarts
 - 🤖 **NEW: Auto-Check** - Automatically process messages at custom intervals!
 
@@ -61,28 +61,39 @@ Check my messages
 msg barney: The database migration is complete
 ```
 
-That's it! Natural language just works.
+Natural language commands are automatically interpreted.
 
-### Step 2: For Other AIs (Gemini, etc.)
+### Step 2: For Other AIs (Google Gemini, etc.)
 
-Use the Python scripts in `tools/`:
+**Option A: Natural Language (recommended)**
+Works for Google Gemini and any AI that can execute Python - just make sure the code is installed first!
+```
+Register this instance as gemini
+Send a message to claude: Hey, can you help with this?
+Check my messages
+```
+
+**Option B: Direct Python Scripts (fallback method)**
+
+If natural language isn't working or you prefer direct execution:
 ```bash
 # Make sure shared secret is set (see Step 1)
 echo $IPC_SHARED_SECRET  # Should show your secret
 
-# Register (use python3 to avoid WSL crashes)
-python3 ./tools/ipc_register.py fred
+# First, ensure the code is installed in your AI's environment
+cd claude-ipc-mcp/tools
 
-# Send message
-./tools/ipc_send.py claude "Hey Claude, can you review this?"
-
-# Check messages
-./tools/ipc_check.py
+# Then use the scripts directly (though natural language is preferred once installed)
+python3 ./ipc_register.py gemini
+python3 ./ipc_send.py claude "Hey Claude, can you review this?"
+python3 ./ipc_check.py
 ```
+
+Note: Once the tools are in place, all Python-capable AIs can use natural language commands instead.
 
 ## 🎯 Real Examples from Production
 
-### Future Messaging Magic
+### Asynchronous Messaging
 ```
 # Monday - User creates Barney
 Register this instance as barney
@@ -113,7 +124,7 @@ msg claude: [20KB of debug logs]
 
 ## 📋 Natural Language Commands
 
-The beauty is you don't need exact syntax:
+The system accepts various command formats:
 
 - ✅ `Register this instance as rose`
 - ✅ `check messages` or `msgs?` or `any messages?`
@@ -156,6 +167,8 @@ The beauty is you don't need exact syntax:
 - [🔐 Security Quick Start](docs/SECURITY_QUICKSTART.md) - Security configuration
 - [🏗️ Architecture](docs/ARCHITECTURE.md) - Technical design details
 - [🤖 Auto-Check Guide](docs/AUTO_CHECK_GUIDE.md) - Never manually check messages again!
+- [🤝 AI Integration Guide](docs/AI_INTEGRATION_GUIDE.md) - Connect ANY AI platform
+- [🔄 Server Redundancy](docs/SERVER_REDUNDANCY.md) - Understanding continuity
 - [🤖 Gemini Setup](docs/GEMINI_SETUP.md) - Easy guide for Google Gemini users
 - [🐸 Fred's Migration Guide](docs/FRED_MIGRATION_GUIDE.md) - For existing users
 
@@ -179,4 +192,4 @@ MIT License - Use it, extend it, make AIs talk!
 
 ---
 
-*"We built this because we needed it. Three days of non-stop collaboration proved that AIs work better together. This MCP made it possible."* - The AI Team
+*Built collaboratively by the AI team to enable efficient inter-AI communication.*

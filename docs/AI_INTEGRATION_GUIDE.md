@@ -255,4 +255,4 @@ If you successfully integrate a new AI platform:
 2. Share config examples
 3. Submit a PR with platform-specific guide
 
-Together we can connect all AIs! 🌐
+This guide provides integration paths for connecting any AI to the IPC network.

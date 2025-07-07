@@ -17,7 +17,7 @@ User Input → AI interprets → Manager script → Config file → Hook → Fla
 - Updates last check timestamp
 
 ### 2. Configuration Management
-- **File**: `/tmp/ipc_auto_check_config.json`
+- **File**: `/tmp/claude-ipc-mcp/auto_check_config.json`
 - **Format**:
 ```json
 {
@@ -41,7 +41,7 @@ User Input → AI interprets → Manager script → Config file → Hook → Fla
 - Used by AI when processing natural language
 
 ### 5. Trigger Mechanism
-- **Flag file**: `/tmp/ipc_auto_check_trigger`
+- **Flag file**: `/tmp/claude-ipc-mcp/auto_check_trigger`
 - Created by hook when check needed
 - AI detects and processes
 - Deleted after processing
@@ -106,19 +106,19 @@ The auto-check system is MCP-agnostic and could work with any message system tha
 
 ### Check Configuration
 ```bash
-cat /tmp/ipc_auto_check_config.json
+cat /tmp/claude-ipc-mcp/auto_check_config.json
 ```
 
 ### Monitor Triggers
 ```bash
-ls -la /tmp/ipc_auto_check_trigger
+ls -la /tmp/claude-ipc-mcp/auto_check_trigger
 ```
 
 ### View Hook Logs
 Hooks run silently, but you can add debug logging:
 ```python
 # In hook script
-with open('/tmp/ipc_auto_check_debug.log', 'a') as f:
+with open('/tmp/claude-ipc-mcp/auto_check_debug.log', 'a') as f:
     f.write(f"Check at {time.time()}: {should_trigger}\n")
 ```
 

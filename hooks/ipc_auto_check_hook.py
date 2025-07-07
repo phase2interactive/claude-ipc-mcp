@@ -8,9 +8,12 @@ import json
 import time
 import sys
 
+# Create secure directory if needed
+os.makedirs("/tmp/claude-ipc-mcp", exist_ok=True)
+
 # Generic paths that work for any instance
-CONFIG_FILE = "/tmp/ipc_auto_check_config.json"
-FLAG_FILE = "/tmp/ipc_auto_check_trigger"
+CONFIG_FILE = "/tmp/claude-ipc-mcp/auto_check_config.json"
+FLAG_FILE = "/tmp/claude-ipc-mcp/auto_check_trigger"
 
 def should_trigger_auto_check():
     """Check if we should trigger auto-processing"""

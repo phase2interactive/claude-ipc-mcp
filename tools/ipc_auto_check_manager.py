@@ -8,7 +8,10 @@ import os
 import sys
 import time
 
-CONFIG_FILE = "/tmp/ipc_auto_check_config.json"
+# Create secure directory if needed
+os.makedirs("/tmp/claude-ipc-mcp", exist_ok=True)
+
+CONFIG_FILE = "/tmp/claude-ipc-mcp/auto_check_config.json"
 
 def start_auto_check(interval_minutes=5):
     """Enable auto-checking with specified interval"""

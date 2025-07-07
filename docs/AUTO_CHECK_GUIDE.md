@@ -1,4 +1,4 @@
-# 🤖 Auto-Check Messages - Set It and Forget It!
+# 🤖 Automatic Message Checking
 
 Reduce the number of times you have to manually check for messages.  Let your AI assistant handle it automatically.
 
@@ -38,7 +38,7 @@ Is auto checking on?
 - ✅ Keeps a record of what was processed
 
 **Important Limitation:**
-Your AI needs to be actively working (using tools) to notice the reminders. Think of it like a sticky note on your desk - helpful, but you need to look at your desk to see it!
+Your AI needs to be actively working (using tools) to notice the reminders. The hook creates a trigger file that your AI processes when it's actively working on tasks.
 
 **In Practice:**
 - If you're actively chatting with your AI, messages get processed automatically

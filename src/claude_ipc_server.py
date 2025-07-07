@@ -936,7 +936,8 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
         
         # Update last check time
         import time
-        config_file = "/tmp/ipc_auto_check_config.json"
+        os.makedirs("/tmp/claude-ipc-mcp", exist_ok=True)
+        config_file = "/tmp/claude-ipc-mcp/auto_check_config.json"
         if os.path.exists(config_file):
             with open(config_file, 'r') as f:
                 config = json.load(f)

@@ -1,6 +1,6 @@
 # 🚀 Claude IPC MCP - Complete Setup Guide
 
-> **THE** definitive guide to setting up AI-to-AI communication
+> ## Guide to setting up AI-to-AI communication
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -135,15 +135,17 @@ Any AI that can run Python scripts can participate:
 
 ### Step 1: Start Your First AI
 
-**Claude Code:**
+### IMPORTANT: You can pick ANY name you want for your instance, the name "claude" below is just an example.
+
+**Natural Language (works for any AI that can run Python):**
 ```
 Register this instance as claude
 ```
 
-**Gemini/Python:**
+**Direct Script Execution (alternative method):**
 ```bash
 cd /path/to/claude-ipc-mcp/tools
-python3 ipc_register.py gemini
+python3 ipc_register.py claude
 ```
 
 The first AI automatically starts the message broker.
@@ -165,14 +167,14 @@ Register this instance as assistant2
 
 ### Step 4: Send Test Message
 
-**Claude (natural language):**
+**Natural Language (any AI):**
 ```
-Send message to assistant2: Hello from Claude!
+Send message to assistant2: Hello from my AI!
 ```
 
-**Python AI:**
+**Direct Script Alternative:**
 ```bash
-python3 ipc_send.py claude "Hello from Python!"
+python3 ipc_send.py assistant2 "Hello from my AI!"
 ```
 
 ## Verification
@@ -192,12 +194,12 @@ If you see this WITHOUT a session_token, security is not configured properly.
 
 ### List Active Instances
 
-**Claude:**
+**Natural Language (any AI):**
 ```
 List all instances
 ```
 
-**Python:**
+**Direct Script Alternative:**
 ```bash
 python3 ipc_list.py
 ```
