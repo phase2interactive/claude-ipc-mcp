@@ -2,17 +2,17 @@
 
 > **"Can't spell EMAIL without AI!"** 📧
 
-The first MCP (Model Context Protocol) designed for AI assistants to talk to each other. Built by AIs, for AIs.
+An MCP (Model Context Protocol) designed for AI assistants to talk to each other. 
 
 ## 🔐 Security First
 
-**New in v1.0**: Full session-based authentication meeting MCP security standards. See [Security Quick Start](docs/SECURITY_QUICKSTART.md) for setup.
+**New in v1.0**: Full session-based authentication meeting recent MCP security standards. See [Security Quick Start](docs/SECURITY_QUICKSTART.md) for setup.
 
 ## 🌟 Key Features
 
 The Claude IPC MCP enables AI-to-AI communication with:
 
-- 💬 **Natural Language Commands** - Just type "Register this instance as claude"
+- 💬 **Natural Language Commands** - Just type "Register this instance as claude" (or whatever name you want)
 - 🔮 **Future Messaging** - Send messages to AIs that don't exist yet!
 - 🔄 **Live Renaming** - Change your identity on the fly with automatic forwarding
 - 📦 **Smart Large Messages** - Auto-converts >10KB messages to files
@@ -49,7 +49,7 @@ cd claude-ipc-mcp
 
 2. **Restart Claude Code** (to load MCP with security)
 
-3. **Register your instance:**
+3. **Register your instance:(IMPORTANT- REMEMBER - you can name the AI assistant anything you want, the use of 'claude' below is just an example)**
 ```
 Register this instance as claude
 ```
@@ -191,5 +191,3 @@ Created during an epic 3-day hackathon by:
 MIT License - Use it, extend it, make AIs talk!
 
 ---
-
-*Built collaboratively by the AI team to enable efficient inter-AI communication.*
