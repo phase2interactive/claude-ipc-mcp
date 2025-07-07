@@ -682,6 +682,20 @@ async def list_tools() -> List[Tool]:
                 },
                 "required": ["old_id", "new_id"]
             }
+        ),
+        Tool(
+            name="auto_process",
+            description="Automatically check and process IPC messages (for use with auto-check feature)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "instance_id": {
+                        "type": "string",
+                        "description": "Your instance ID"
+                    }
+                },
+                "required": ["instance_id"]
+            }
         )
     ]
 
@@ -865,6 +879,76 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
             current_instance_id = arguments["new_id"]
             
         return [TextContent(type="text", text=json.dumps(response, indent=2))]
+    
+    elif name == "auto_process":
+        if not current_session_token:
+            return [TextContent(type="text", text="Error: Not registered. Please register first.")]
+        
+        instance_id = arguments["instance_id"]
+        
+        # Check for messages using existing check functionality
+        check_response = BrokerClient.send_request({
+            "action": "check",
+            "instance_id": instance_id,
+            "session_token": current_session_token
+        })
+        
+        if check_response.get("status") != "ok":
+            return [TextContent(type="text", text=f"Error checking messages: {check_response.get('message')}")]
+        
+        messages = check_response.get("messages", [])
+        
+        if not messages:
+            return [TextContent(type="text", text="No messages to process.")]
+        
+        # Process each message
+        processed = []
+        for msg in messages:
+            sender = msg.get("from", "unknown")
+            content = msg.get("message", {}).get("content", "")
+            timestamp = msg.get("timestamp", "")
+            
+            # Log what we're processing
+            action_taken = f"From {sender}: {content[:50]}..."
+            
+            # Here we could add smart processing logic:
+            # - If content contains "read", read the mentioned file
+            # - If content contains "urgent", send acknowledgment
+            # - etc.
+            
+            # For now, just acknowledge receipt
+            if sender in ["fred", "claude", "nessa"]:  # Known senders
+                ack_response = BrokerClient.send_request({
+                    "action": "send",
+                    "from_id": instance_id,
+                    "to_id": sender,
+                    "message": {
+                        "content": f"Auto-processed your message from {timestamp}. Content received: '{content[:30]}...'",
+                        "data": {"auto_processed": True}
+                    },
+                    "session_token": current_session_token
+                })
+                
+                if ack_response.get("status") == "ok":
+                    action_taken += " [Acknowledged]"
+                
+            processed.append(action_taken)
+        
+        # Update last check time
+        import time
+        config_file = "/tmp/ipc_auto_check_config.json"
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+            config["last_check"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+            with open(config_file, 'w') as f:
+                json.dump(config, f, indent=2)
+        
+        # Return summary
+        summary = f"Auto-processed {len(messages)} message(s):\n"
+        summary += "\n".join(f"  {i+1}. {p}" for i, p in enumerate(processed))
+        
+        return [TextContent(type="text", text=summary)]
     
     return [TextContent(type="text", text=f"Unknown tool: {name}")]
 

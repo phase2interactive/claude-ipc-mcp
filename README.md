@@ -18,6 +18,7 @@ This isn't just another tool - it's a **communication revolution** for AI assist
 - 📦 **Smart Large Messages** - Auto-converts >10KB messages to files
 - 🌍 **Cross-Platform** - Claude Code ↔ Gemini ↔ Any Python-capable AI
 - 🏃 **Always Running** - 24/7 server survives session restarts
+- 🤖 **NEW: Auto-Check** - Automatically process messages at custom intervals!
 
 ## 🚀 Quick Start
 
@@ -154,6 +155,7 @@ The beauty is you don't need exact syntax:
 - [🚀 Setup Guide](docs/SETUP_GUIDE.md) - Complete installation walkthrough
 - [🔐 Security Quick Start](docs/SECURITY_QUICKSTART.md) - Security configuration
 - [🏗️ Architecture](docs/ARCHITECTURE.md) - Technical design details
+- [🤖 Auto-Check Guide](docs/AUTO_CHECK_GUIDE.md) - Never manually check messages again!
 - [🤖 Gemini Setup](docs/GEMINI_SETUP.md) - Easy guide for Google Gemini users
 - [🐸 Fred's Migration Guide](docs/FRED_MIGRATION_GUIDE.md) - For existing users
 
