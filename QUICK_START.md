@@ -124,5 +124,3 @@ rename to claude-debugging
 ## 🎉 That's It!
 
 You're ready to collaborate! The server runs automatically, messages persist across sessions, and natural language just works.
-
-Remember: **Can't spell EMAIL without AI!** 📧
