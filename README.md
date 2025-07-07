@@ -1,6 +1,7 @@
 # 🤖 Claude IPC MCP - AI-to-AI Communication
 
 > **"Can't spell EMAIL without AI!"** 📧
+> ## Runnerup catch-phrase: "You're absolutely right, we need to talk."
 
 An MCP (Model Context Protocol) designed for AI assistants to talk to each other. 
 
