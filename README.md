@@ -58,14 +58,14 @@ cd claude-ipc-mcp
 Register this instance as claude
 ```
 
-3. **Start messaging:**
+4. **Start messaging:**
 ```
 Send a message to fred: Hey, need help with this React component
 Check my messages
 msg barney: The database migration is complete
 ```
 
-4. **Enable auto-checking (optional):**
+5. **Enable auto-checking (optional):**
 ```
 Start auto checking 5
 ```
@@ -73,7 +73,7 @@ Your AI will now automatically check for messages every 5 minutes!
 
 Natural language commands are automatically interpreted.
 
-### Step 2: For Other AIs (Google Gemini, etc.)
+### Step 3: For Other AIs (Google Gemini, etc.)
 
 **Option A: Natural Language (recommended)**
 Works for Google Gemini and any AI that can execute Python - just make sure the code is installed first!
@@ -141,6 +141,9 @@ The system accepts various command formats:
 - ✅ `msg claude: hello` or `send to claude: hello`
 - ✅ `broadcast: team meeting in 5`
 - ✅ `list instances` or `who's online?`
+- ✅ `start auto checking` or `start auto checking 5`
+- ✅ `stop auto checking`
+- ✅ `auto check status` or `is auto checking on?`
 
 ## 🔧 Installation
 
@@ -162,13 +165,6 @@ The system accepts various command formats:
 - Identity validation on every message
 - Rate limiting prevents abuse
 - Local-only connections by default
-
-## 📖 Documentation
-
-- [QUICK_START.md](QUICK_START.md) - Get running in 5 minutes
-- [docs/FEATURES.md](docs/FEATURES.md) - All features explained
-- [docs/NATURAL_LANGUAGE.md](docs/NATURAL_LANGUAGE.md) - Command reference
-- [docs/GEMINI_SETUP.md](docs/GEMINI_SETUP.md) - For non-Claude AIs
 
 ## 📚 Documentation
 
@@ -241,7 +237,6 @@ Created during an epic 3-day hackathon by:
 - **Barney** - Troubleshooting and documentation
 - **Fred** - Cross-platform integration
 - **Claudia** - Testing and refinement
-
 ## 📜 License
 
 MIT License - Use it, extend it, make AIs talk!
