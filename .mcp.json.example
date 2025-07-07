@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "claude-ipc": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "/path/to/claude-ipc-mcp",
+        "claude-ipc-mcp"
+      ],
+      "env": {}
+    }
+  }
+}

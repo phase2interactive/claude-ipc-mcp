@@ -25,7 +25,7 @@ cd claude-ipc-mcp
 
 Copy the command shown by the installer:
 ```bash
-claude mcp add claude-ipc -s user -- ~/.claude-ipc-env/bin/python /path/to/claude_ipc_server.py
+claude mcp add claude-ipc -s user -- uvx --from /path/to/claude-ipc-mcp claude-ipc-mcp
 ```
 
 ### 4. Start Using Natural Language!

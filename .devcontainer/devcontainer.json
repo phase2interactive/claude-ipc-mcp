@@ -15,6 +15,9 @@
     }
   },
   "postCreateCommand": "uv sync && echo '✅ uv environment ready!'",
+  "containerEnv": {
+    "UV_LINK_MODE": "copy"
+  },
   "remoteEnv": {
     "UV_PROJECT_ENVIRONMENT": ".venv"
   }

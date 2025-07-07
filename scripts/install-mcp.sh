@@ -23,12 +23,61 @@ cd "$REPO_DIR"
 echo "Installing dependencies with uv sync..."
 uv sync
 
-# Add MCP to Claude Code using uv python
+# Ask user for installation scope
 echo ""
-echo "Adding IPC MCP to Claude Code..."
-echo "Run this command:"
+echo "Where would you like to install the MCP?"
+echo "1) User level (available in all projects)"
+echo "2) Project level (only in current project)"
 echo ""
-echo "claude mcp add claude-ipc -s user -- $REPO_DIR/.venv/bin/python $REPO_DIR/src/claude_ipc_server.py"
+read -p "Enter your choice (1 or 2): " choice
+
+# Determine the scope flag
+case $choice in
+    1)
+        SCOPE="user"
+        SCOPE_DESC="user level (all projects)"
+        ;;
+    2)
+        SCOPE="project"
+        SCOPE_DESC="project level (current project only)"
+        ;;
+    *)
+        echo "Invalid choice. Defaulting to user level."
+        SCOPE="user"
+        SCOPE_DESC="user level (all projects)"
+        ;;
+esac
+
+# Add MCP to Claude Code using uvx
 echo ""
-echo "Then restart Claude Code for the MCP to load!"
+echo "Adding IPC MCP to Claude Code at $SCOPE_DESC..."
+
+# Run the claude mcp add command
+COMMAND="claude mcp add claude-ipc -s $SCOPE -- uvx --from $REPO_DIR claude-ipc-mcp"
+echo "Running: $COMMAND"
+echo ""
+
+if $COMMAND; then
+    echo "✅ Successfully added Claude IPC MCP!"
+    echo ""
+    
+    # Verify installation
+    echo "Verifying installation..."
+    if claude mcp list | grep -q "claude-ipc"; then
+        echo "✅ MCP 'claude-ipc' is now installed at $SCOPE_DESC"
+        echo ""
+        echo "🎉 Installation complete!"
+        echo "Please restart Claude Code for the MCP to load."
+    else
+        echo "⚠️  MCP was added but not showing in list yet."
+        echo "This is normal - please restart Claude Code for it to appear."
+    fi
+else
+    echo "❌ Failed to add MCP. Please check the error message above."
+    echo ""
+    echo "You can try running this command manually:"
+    echo "$COMMAND"
+    exit 1
+fi
+
 echo "==========================================="

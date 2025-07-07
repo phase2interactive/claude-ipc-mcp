@@ -28,7 +28,8 @@ dependencies = [
 "Bug Tracker" = "https://github.com/yourusername/claude-ipc-mcp/issues"
 "Documentation" = "https://github.com/yourusername/claude-ipc-mcp/docs"
 
-# Scripts will be run directly with uvx or python
+[project.scripts]
+claude-ipc-mcp = "claude_ipc_server:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -36,6 +37,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src", "tools"]
+
+[tool.hatch.build]
+sources = ["src"]
 
 [tool.uv]
 dev-dependencies = [
