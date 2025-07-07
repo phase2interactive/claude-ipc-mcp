@@ -77,7 +77,7 @@ Messages over 10KB automatically become files!
 4. Original message preserved with metadata
 
 ### File Location
-`/mnt/c/Users/jeff/Documents/CODA/ipc-messages/large-messages/`
+`/mnt/c/Users/{username}/Documents/CODA/ipc-messages/large-messages/`
 
 ### File Format
 ```

@@ -1,4 +1,4 @@
-#!/home/jeff/.claude-ipc-env/bin/python
+#!/usr/bin/env python3
 """Rename your IPC instance ID"""
 import socket
 import json

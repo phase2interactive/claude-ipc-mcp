@@ -1,4 +1,4 @@
-#!/home/jeff/.claude-ipc-env/bin/python
+#!/usr/bin/env python3
 """Send a message to another instance via IPC"""
 import socket
 import json

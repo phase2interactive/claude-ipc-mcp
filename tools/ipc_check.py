@@ -1,4 +1,4 @@
-#!/home/jeff/.claude-ipc-env/bin/python
+#!/usr/bin/env python3
 """Check for messages from the IPC server"""
 import socket
 import json

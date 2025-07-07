@@ -49,6 +49,14 @@ class MessageBroker:
         self.sessions: Dict[str, Dict[str, Any]] = {}  # session_token -> {instance_id, created_at}
         self.instance_sessions: Dict[str, str] = {}  # instance_id -> session_token
         
+    def _validate_instance_id(self, instance_id: str) -> bool:
+        """Validate instance ID for security"""
+        import re
+        # Allow only alphanumeric, hyphens, underscores, 1-32 chars
+        if not instance_id or len(instance_id) > 32:
+            return False
+        return bool(re.match(r'^[a-zA-Z0-9_-]+$', instance_id))
+        
     def start(self):
         """Start the message broker server"""
         self.running = True
@@ -90,7 +98,8 @@ class MessageBroker:
     def _handle_client(self, client_socket: socket.socket):
         """Handle a client connection"""
         try:
-            data = client_socket.recv(65536).decode('utf-8')
+            # Read smaller initial chunk to prevent DoS (M-03 fix)
+            data = client_socket.recv(4096).decode('utf-8')
             request = json.loads(data)
             
             response = self._process_request(request)
@@ -179,10 +188,14 @@ class MessageBroker:
     
     def _save_large_message(self, from_id: str, to_id: str, content: str) -> str:
         """Save large message to file and return file path"""
+        # Sanitize IDs to prevent path traversal
+        safe_from = os.path.basename(from_id).replace("/", "_").replace("\\", "_")
+        safe_to = os.path.basename(to_id).replace("/", "_").replace("\\", "_")
+        
         # Create timestamp-based filename
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = f"{timestamp}_{from_id}_{to_id}_message.md"
-        filepath = f"/mnt/c/Users/jeff/Documents/CODA/ipc-messages/large-messages/{filename}"
+        filename = f"{timestamp}_{safe_from}_{safe_to}_message.md"
+        filepath = f"/tmp/ipc-messages/large-messages/{filename}"
         
         # Calculate size in KB
         size_kb = len(content.encode('utf-8')) / 1024
@@ -243,6 +256,10 @@ Size: {size_kb:.1f}KB
             if action == "register":
                 instance_id = request["instance_id"]
                 
+                # Validate instance ID format
+                if not self._validate_instance_id(instance_id):
+                    return {"status": "error", "message": "Invalid instance ID format. Use 1-32 alphanumeric characters, hyphens, or underscores."}
+                
                 # Validate auth token (shared secret)
                 auth_token = request.get("auth_token")
                 shared_secret = os.environ.get("IPC_SHARED_SECRET", "")
@@ -288,6 +305,10 @@ Size: {size_kb:.1f}KB
                 to_id = request["to_id"]
                 message = request["message"]
                 
+                # Validate to_id format
+                if not self._validate_instance_id(to_id):
+                    return {"status": "error", "message": "Invalid recipient ID format"}
+                
                 # Check message size (10KB threshold)
                 content = message.get("content", "")
                 content_size = len(content.encode('utf-8'))
@@ -316,6 +337,10 @@ Size: {size_kb:.1f}KB
                     future_delivery = True
                 else:
                     future_delivery = not (resolved_to in self.instances)
+                    
+                # Check queue limit (100 messages per instance)
+                if len(self.queues[resolved_to]) >= 100:
+                    return {"status": "error", "message": f"Message queue full for {resolved_to} (100 message limit)"}
                     
                 msg_data = {
                     "from": from_id,
@@ -375,6 +400,10 @@ Size: {size_kb:.1f}KB
                 # Get validated instance_id from session
                 old_id = request.get("old_id")  # This will be overridden by session validation
                 new_id = request["new_id"]
+                
+                # Validate new_id format
+                if not self._validate_instance_id(new_id):
+                    return {"status": "error", "message": "Invalid new instance ID format"}
                 
                 # The old_id should match the session's instance_id (enforced by _process_request)
                 # Check if old instance exists
@@ -779,11 +808,21 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
             
         try:
             import subprocess
+            import shlex
+            
+            # Parse command safely to prevent injection
+            try:
+                cmd_args = shlex.split(arguments["command"])
+            except ValueError as e:
+                return [TextContent(type="text", text=f"Invalid command format: {e}")]
+            
+            # Run without shell=True for security
             result = subprocess.run(
-                arguments["command"],
-                shell=True,
+                cmd_args,
+                shell=False,
                 capture_output=True,
-                text=True
+                text=True,
+                timeout=30  # Add timeout to prevent hanging
             )
             
             message = {
@@ -805,7 +844,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
                 "message": message,
                 "session_token": current_session_token
             })
-            return [TextContent(type="text", text=f"Command output shared: {json.dumps(response, indent=2)}"]
+            return [TextContent(type="text", text=f"Command output shared: {json.dumps(response, indent=2)}")]
             
         except Exception as e:
             return [TextContent(type="text", text=f"Error executing command: {e}")]

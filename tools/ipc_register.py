@@ -1,4 +1,4 @@
-#!/home/jeff/.claude-ipc-env/bin/python
+#!/usr/bin/env python3
 """Register an instance with the IPC server"""
 import socket
 import json

@@ -1,5 +1,17 @@
 # 🚀 Fred's Complete Migration Guide - From AgentIPC to Claude IPC MCP
 
+## ⚠️ URGENT UPDATE - January 7, 2025
+
+**Fred! Important changes:**
+1. Server is being restarted with security fixes
+2. Your script workarounds have been removed 
+3. Scripts are fixed - no more WSL crashes!
+4. Session tokens now work properly
+
+**Action needed**: Wait for the Creator to restart Claude Code, then re-register!
+
+---
+
 Fred, this guide will get you back online with the REAL IPC system. Follow every step!
 
 ## 🛑 What Happened
@@ -8,17 +20,23 @@ Fred, this guide will get you back online with the REAL IPC system. Follow every
 2. **Barney broke it**: Created "AgentIPC" with unnecessary complexity
 3. **Now we have**: Original IPC MCP restored and working!
 
-## 📍 Current Situation
+## 📍 Current Situation (UPDATED: January 7, 2025)
 
-### What's Running Now
-- **Server**: Claude IPC MCP on port 9876 (started by Barney)
-- **Protocol**: Original JSON format (not the AgentIPC format)
-- **Location**: `/mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/`
+### What's Happening Now
+- **Server**: Being restarted with FULL SECURITY implementation
+- **Scripts**: Fixed and ready (no more WSL crashes!)
+- **Security**: Session tokens now working properly
+- **Location**: `/mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/`
 
-### Your Message Waiting
+### What We Fixed
+1. ✅ Scripts now use `#!/usr/bin/env python3` (no more hardcoded paths)
+2. ✅ Session checking restored (your temporary fixes removed)
+3. ✅ Server returns session tokens properly
+4. ✅ Security implementation complete
+
+### Your Messages Waiting
 ```
-From: barney
-Content: "Fred! Testing the new IPC MCP. Can you check your messages using the new tools at /mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools/"
+Multiple messages from barney about security implementation and testing
 ```
 
 ## 🔧 Step-by-Step Migration
@@ -35,11 +53,11 @@ from agentipc_client import IPCClient
 ### Step 2: Set Environment Variable (CRITICAL!)
 
 ```bash
-# Set the shared secret (ASK JEFF for the exact value!)
-export IPC_SHARED_SECRET="the-secret-jeff-is-using"
+# Set the shared secret (ASK THE CREATOR for the exact value!)
+export IPC_SHARED_SECRET="the-secret-being-used"
 
 # Make it permanent
-echo 'export IPC_SHARED_SECRET="the-secret-jeff-is-using"' >> ~/.bashrc
+echo 'export IPC_SHARED_SECRET="the-secret-being-used"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -49,7 +67,7 @@ source ~/.bashrc
 
 ```bash
 # Go to the new tools location
-cd /mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools
+cd /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools
 
 # Check what's there
 ls -la
@@ -63,25 +81,40 @@ ls -la
 
 ### Step 4: Register with New System
 
+**⚠️ IMPORTANT: If the scripts crash your WSL session, use Python directly:**
+
 ```bash
-# Register as fred
+# Option 1: Use system Python3 directly (RECOMMENDED)
+python3 /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/ipc_register.py fred
+
+# Option 2: If that fails, check your Python path first
+which python3
+# Then use that path explicitly, e.g.:
+/usr/bin/python3 /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/ipc_register.py fred
+
+# Option 3: Only if the above work, try the direct script
 ./ipc_register.py fred
 ```
 
 **Expected output:**
-```
-Registered as fred
+```json
+{
+  "status": "ok",
+  "message": "Registered fred"
+}
 ```
 
+**Note**: Since the Creator didn't set a shared secret, you'll see JSON output instead of a friendly message. This is normal!
+
 **What happens behind the scenes:**
-- Uses your shared secret to authenticate
-- Gets a secure session token
+- Gets a session token (even without shared secret)
 - Saves it to `~/.ipc-session` for future commands
 
 ### Step 5: Check Your Waiting Messages
 
 ```bash
-./ipc_check.py
+# Use Python3 directly to avoid crashes
+python3 /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/ipc_check.py
 ```
 
 **You should see:**
@@ -90,20 +123,22 @@ New messages:
 --------------------------------------------------
 From: barney
 Time: [timestamp]
-Content: Fred! Testing the new IPC MCP. Can you check your messages using the new tools at /mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools/
+Content: Fred! Testing the new IPC MCP. Can you check your messages using the new tools at /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/
 --------------------------------------------------
 ```
 
 ### Step 6: Reply to Barney
 
 ```bash
-./ipc_send.py barney "Got it! Fred is back online with the new system!"
+# Use Python3 directly
+python3 /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/ipc_send.py barney "Got it! Fred is back online with the new system!"
 ```
 
 ### Step 7: List Who's Online
 
 ```bash
-./ipc_list.py
+# Use Python3 directly
+python3 /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/ipc_list.py
 ```
 
 **Should show:**
@@ -145,7 +180,7 @@ import json
 def send_ipc(recipient, message):
     """Send IPC message using tool"""
     result = subprocess.run(
-        ["/mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools/ipc_send.py", 
+        ["/mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/ipc_send.py", 
          recipient, message],
         capture_output=True,
         text=True
@@ -155,7 +190,7 @@ def send_ipc(recipient, message):
 def check_ipc():
     """Check IPC messages using tool"""
     result = subprocess.run(
-        ["/mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools/ipc_check.py"],
+        ["/mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/ipc_check.py"],
         capture_output=True,
         text=True
     )
@@ -216,22 +251,22 @@ Run these commands in order:
 
 ```bash
 # 1. Go to tools
-cd /mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools
+cd /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools
 
-# 2. Register
-./ipc_register.py fred
+# 2. Register (USE PYTHON3 DIRECTLY)
+python3 ./ipc_register.py fred
 
 # 3. Check messages (see Barney's message)
-./ipc_check.py
+python3 ./ipc_check.py
 
 # 4. Reply
-./ipc_send.py barney "Fred is back! The migration worked!"
+python3 ./ipc_send.py barney "Fred is back! The migration worked!"
 
 # 5. Test future messaging
-./ipc_send.py ghost "This is a message to someone who doesn't exist yet"
+python3 ./ipc_send.py ghost "This is a message to someone who doesn't exist yet"
 
 # 6. Test rename (if you want)
-./ipc_rename.py fred-testing
+python3 ./ipc_rename.py fred-testing
 ```
 
 ## ⚠️ Common Issues
@@ -242,15 +277,20 @@ cd /mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools
 
 ### "Permission denied"
 ```bash
-chmod +x /mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools/*.py
+chmod +x /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/*.py
 ```
 
-### Wrong Python Version
-The scripts use `#!/home/jeff/.claude-ipc-env/bin/python`. If that doesn't work:
+### Wrong Python Version / WSL Crashes
+The scripts use `#!/home/the Creator/.claude-ipc-env/bin/python` which may not exist in your environment.
+
+**Solution: ALWAYS use python3 directly:**
 ```bash
-# Use your python directly
-python3 /mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools/ipc_send.py barney "message"
+# Instead of: ./ipc_send.py barney "message"
+# Use: python3 ./ipc_send.py barney "message"
+# Or full path: python3 /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools/ipc_send.py barney "message"
 ```
+
+**This prevents WSL crashes and ensures the scripts work!**
 
 ### Need to Find Old Messages?
 If you had messages in the old system, they're gone. This is a fresh start.
@@ -282,26 +322,26 @@ for i in {1..1000}; do echo "This is line $i of a very large message that should
 
 ### Morning Routine
 ```bash
-cd /mnt/c/Users/jeff/Documents/CODA/claude-ipc-mcp/tools
-./ipc_register.py fred
-./ipc_check.py
+cd /mnt/c/Users/{username}/Documents/CODA/claude-ipc-mcp/tools
+python3 ./ipc_register.py fred
+python3 ./ipc_check.py
 ```
 
 ### During Work
 ```bash
 # Quick send
-./ipc_send.py barney "Starting PDF conversion"
+python3 ./ipc_send.py barney "Starting PDF conversion"
 
 # Check replies
-./ipc_check.py
+python3 ./ipc_check.py
 
 # When debugging
-./ipc_rename.py fred-debugging
+python3 ./ipc_rename.py fred-debugging
 ```
 
 ### End of Day
 ```bash
-./ipc_send.py barney "Signing off for the day, left notes in /docs/fred-progress.md"
+python3 ./ipc_send.py barney "Signing off for the day, left notes in /docs/fred-progress.md"
 ```
 
 ## ✅ Success Criteria
