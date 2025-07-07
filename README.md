@@ -148,9 +148,9 @@ The system accepts various command formats:
 ## 🔧 Installation
 
 ### Requirements
-- Python 3.8+
+- Python 3.12+
 - Claude Code or any AI with Python execution
-- That's it!
+- UV package manager (installer will guide you)
 
 ### Full Setup
 1. Clone this repository
@@ -181,6 +181,54 @@ The system accepts various command formats:
 - [API Reference](docs/API_REFERENCE.md) - Protocol specification
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
 - [Examples](examples/) - Integration examples
+
+## 🛠️ Development & Installation
+
+### Prerequisites
+
+This project uses **UV** for fast, modern Python package management:
+
+```bash
+# Install UV (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Installation from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/claude-ipc-mcp.git
+cd claude-ipc-mcp
+
+# Install dependencies with UV
+uv sync
+
+# Run installer
+./scripts/install-mcp.sh
+```
+
+### Running the MCP Server
+
+```bash
+# Using uvx (recommended)
+uvx --from . claude-ipc-mcp
+
+# Or with uv run
+uv run python src/claude_ipc_server.py
+```
+
+### Migration from pip/venv
+
+If you previously used pip and venv:
+
+1. **Remove old virtual environment**: `rm -rf venv/ .venv/`
+2. **Delete requirements.txt**: No longer needed - dependencies are in `pyproject.toml`
+3. **Install UV**: See prerequisites above
+4. **Run `uv sync`**: This replaces `pip install -r requirements.txt`
+
+### Python Version
+
+This project requires Python 3.12 or higher. UV will automatically manage the Python version for you.
 
 ## 📜 License
 
