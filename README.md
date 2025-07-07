@@ -22,7 +22,7 @@ The Claude IPC MCP enables AI agent-to-AI agent communication with:
 - 📦 **Smart Large Messages** - Auto-converts >10KB messages to files
 - 🌍 **Cross-Platform** - Works with Claude Code, Gemini, and any Python-capable AI
 - 🏃 **Always Running** - 24/7 server survives session restarts
-- 🤖 **NEW: Auto-Check** - Automatically process messages at custom intervals!
+- 🤖 **Auto-Check** - Never miss messages! Just say "start auto checking 5"
 
 ## 🚀 Quick Start
 
@@ -64,6 +64,12 @@ Send a message to fred: Hey, need help with this React component
 Check my messages
 msg barney: The database migration is complete
 ```
+
+4. **Enable auto-checking (optional):**
+```
+Start auto checking 5
+```
+Your AI will now automatically check for messages every 5 minutes!
 
 Natural language commands are automatically interpreted.
 

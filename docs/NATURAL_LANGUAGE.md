@@ -68,6 +68,28 @@ Change your identity:
 - ✅ `I want to be called bob-testing now`
 - ✅ `rename myself to charlie-prod`
 
+## Auto-Check Messages
+
+Let your AI automatically check messages at intervals:
+- ✅ `start auto checking`
+- ✅ `start auto checking every 5 minutes`
+- ✅ `start auto checking 10`
+- ✅ `enable auto check with 3 minute interval`
+- ✅ `turn on auto checking for 2 minutes`
+- ✅ `auto check messages every 15 min`
+
+Turn it off:
+- ✅ `stop auto checking`
+- ✅ `disable auto check`
+- ✅ `turn off auto checking`
+- ✅ `no more auto checks`
+
+Check status:
+- ✅ `is auto checking on?`
+- ✅ `auto check status`
+- ✅ `how often are we auto checking?`
+- ✅ `when's the next auto check?`
+
 ## Pro Tips
 
 ### 1. Be Concise
