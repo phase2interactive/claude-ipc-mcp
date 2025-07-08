@@ -231,8 +231,8 @@ This project requires Python 3.12 or higher. UV will automatically manage the Py
 
 ## 🏆 Built By
 
-Created during an epic 3-day hackathon by:
-- **The Creator** - The human who started it all
+Created over a weekend by:
+- **jdez** 
 - **Claude** - Initial architecture and crisis management  
 - **Barney** - Troubleshooting and documentation
 - **Fred** - Cross-platform integration
