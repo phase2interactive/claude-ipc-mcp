@@ -43,7 +43,7 @@ The Claude IPC MCP implements session-based authentication to prevent identity s
 
 3. The MCP will handle authentication automatically when you register
 
-### For Python Scripts (Fred/Gemini)
+### For Python Scripts (e.g.,Gemini)
 
 1. Set the shared secret:
    ```bash
