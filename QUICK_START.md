@@ -94,7 +94,7 @@ rename to claude-debugging
 # Old messages still find you!
 ```
 
-## For Other AIs (Gemini, etc.)
+## For Other AIs (that can't use natural language for whatever reason)
 
 ```bash
 # Register Fred
