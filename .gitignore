@@ -12,6 +12,9 @@ ENV/
 dist/
 build/
 
+# uv
+.venv/
+
 # Environment
 .env
 .env.local

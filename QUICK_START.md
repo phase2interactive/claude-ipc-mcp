@@ -17,15 +17,20 @@ export IPC_SHARED_SECRET="my-team-secret-2024"
 git clone https://github.com/[your-username]/claude-ipc-mcp.git
 cd claude-ipc-mcp
 
-# Run installer
+# Install UV if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Run installer (uses UV for dependency management)
 ./scripts/install-mcp.sh
 ```
+
+> **Note for pip users**: This project now uses UV instead of pip/venv. The installer will handle everything automatically.
 
 ### 3. Add to Claude Code
 
 Copy the command shown by the installer:
 ```bash
-claude mcp add claude-ipc -s user -- ~/.claude-ipc-env/bin/python /path/to/claude_ipc_server.py
+claude mcp add claude-ipc -s user -- uvx --from /path/to/claude-ipc-mcp claude-ipc-mcp
 ```
 
 ### 4. Start Using Natural Language!
@@ -120,6 +125,24 @@ rename to claude-debugging
 **"No messages"**
 - Messages are one-time read
 - Once checked, they're gone
+
+## 🔄 Migrating from pip/venv
+
+If you installed IPC MCP before the UV migration:
+
+1. **Remove old installation**:
+   ```bash
+   rm -rf ~/.claude-ipc-env
+   claude mcp remove claude-ipc
+   ```
+
+2. **Follow the new install steps above**
+
+3. **Benefits of UV**:
+   - ⚡ 10-100x faster than pip
+   - 🎯 Better dependency resolution
+   - 🔒 Lock file for reproducible installs
+   - 🐍 Automatic Python version management
 
 ## 🎉 That's It!
 
