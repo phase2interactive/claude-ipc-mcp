@@ -18,11 +18,14 @@ The Claude IPC MCP enables AI agent-to-AI agent communication with:
 
 - 💬 **Natural Language Commands** - Just type "Register this instance as claude" (or whatever name you want)
 - 🔮 **Future Messaging** - Send messages to AIs that don't exist yet!
+- 💾 **SQLite Persistence** - Messages survive server restarts with automatic database backup
 - 🔄 **Live Renaming** - Change your identity on the fly with automatic forwarding
 - 📦 **Smart Large Messages** - Auto-converts >10KB messages to files
 - 🌍 **Cross-Platform** - Works with Claude Code, Gemini, and any Python-capable AI
-- 🏃 **Always Running** - 24/7 server survives session restarts
+- 🏃 **Always Running** - 24/7 server with crash recovery and message durability
 - 🤖 **Auto-Check** - Never miss messages! Just say "start auto checking 5"
+- 🔐 **Session Security** - Authentication tokens protect your messages
+- ⚡ **UV Package Management** - Fast, modern Python dependency management
 
 ## 🚀 Quick Start
 
@@ -45,27 +48,33 @@ source ~/.bashrc
 
 ### Step 2: For Claude Code Users
 
-1. **Install the MCP:**
+1. **Install UV (if not already installed):**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+2. **Install the MCP:**
 ```bash
 cd claude-ipc-mcp
+uv sync  # Install dependencies
 ./scripts/install-mcp.sh
 ```
 
-2. **Restart Claude Code** (to load MCP with security)
+3. **Restart Claude Code** (to load MCP with security)
 
-3. **Register your instance:(IMPORTANT- REMEMBER - you can name the AI assistant anything you want, the use of 'claude' below is just an example)**
+4. **Register your instance:(IMPORTANT- REMEMBER - you can name the AI assistant anything you want, the use of 'claude' below is just an example)**
 ```
 Register this instance as claude
 ```
 
-4. **Start messaging:**
+5. **Start messaging:**
 ```
 Send a message to fred: Hey, need help with this React component
 Check my messages
 msg barney: The database migration is complete
 ```
 
-5. **Enable auto-checking (optional):**
+6. **Enable auto-checking (optional):**
 ```
 Start auto checking 5
 ```
@@ -148,16 +157,23 @@ The system accepts various command formats:
 ## 🔧 Installation
 
 ### Requirements
-- Python 3.8+
+- Python 3.12+ (required for UV)
 - Claude Code or any AI with Python execution
-- That's it!
+- UV package manager (see Quick Start)
+
+### ⚠️ Important: Clean Installation
+If you have an old pip/venv installation, clean it up first:
+```bash
+rm -rf venv/ .venv/  # Remove old virtual environments
+```
 
 ### Full Setup
 1. Clone this repository
-2. Set your shared secret: `export IPC_SHARED_SECRET="your-secret-key"`
-3. Run `./scripts/install-mcp.sh`
-4. Add to Claude Code as shown
-5. Start collaborating!
+2. Install UV: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+3. Set your shared secret: `export IPC_SHARED_SECRET="your-secret-key"`
+4. Run `uv sync` then `./scripts/install-mcp.sh`
+5. Restart Claude Code completely
+6. Start collaborating!
 
 ## 🛡️ Security
 
@@ -165,6 +181,26 @@ The system accepts various command formats:
 - Identity validation on every message
 - Rate limiting prevents abuse
 - Local-only connections by default
+
+## 🔧 Troubleshooting
+
+### MCP Tools Not Available
+- **Solution**: Restart Claude Code session completely (exit and start fresh)
+- Don't use `--continue` or `--resume` flags after MCP changes
+
+### Old Installation Conflicts
+- **Symptoms**: Import errors, module not found, UV sync fails
+- **Solution**: Remove old venv/pip installations: `rm -rf venv/ .venv/`
+
+### Messages Not Persisting
+- **Check**: SQLite database at `~/.claude-ipc-data/messages.db`
+- **Solution**: Ensure write permissions on the directory
+
+### "Connection Refused" Errors
+- **Cause**: No server running
+- **Solution**: First AI to register starts the server automatically
+
+See [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for more solutions.
 
 ## 📚 Documentation
 
@@ -176,11 +212,43 @@ The system accepts various command formats:
 - [🤝 AI Integration Guide](docs/AI_INTEGRATION_GUIDE.md) - Connect ANY AI platform
 - [🔄 Server Redundancy](docs/SERVER_REDUNDANCY.md) - Understanding continuity
 - [🤖 Gemini Setup](docs/GEMINI_SETUP.md) - Easy guide for Google Gemini users
+- [🛠️ Troubleshooting](docs/TROUBLESHOOTING.md) - Solutions to common issues
 
 ### Quick References
 - [API Reference](docs/API_REFERENCE.md) - Protocol specification
-- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
 - [Examples](examples/) - Integration examples
+
+## 🚨 Troubleshooting
+
+### MCP Tools Not Available
+**Symptom**: Natural language commands don't work in Claude Code  
+**Solution**: 
+- Stop and resume your Claude Code session
+- Verify MCP is installed: `claude mcp list | grep claude-ipc`
+- Check for error messages when Claude Code starts
+
+### Old Installation Conflicts
+**Symptom**: MCP fails to start or behaves unexpectedly  
+**Solution**:
+- Remove old pip/venv installations: `rm -rf ~/.claude-ipc-env/ venv/ .venv/`
+- Clear old MCP configs: `claude mcp remove claude-ipc`
+- Reinstall with UV: `./scripts/install-mcp.sh`
+
+### Messages Not Persisting
+**Symptom**: Messages lost when server restarts  
+**Solution**:
+- Check SQLite database exists: `ls -la /tmp/ipc-messages.db`
+- Verify write permissions: `touch /tmp/ipc-messages.db`
+- Check disk space: `df -h /tmp`
+
+### Connection Refused Errors
+**Symptom**: Can't register or send messages  
+**Solution**:
+- Ensure at least one AI is registered (becomes server)
+- Check port 9876 is free: `nc -zv localhost 9876`
+- Verify no firewall blocking localhost connections
+
+For more detailed troubleshooting, see [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
 ## 🛠️ Development & Installation
 
