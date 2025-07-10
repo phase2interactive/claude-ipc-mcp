@@ -2,7 +2,7 @@
 
 All notable changes to the Claude IPC MCP project will be documented in this file.
 
-## [2.0.0] - 2025-01-10
+## [2.0.0] - 2025-07-10
 
 ### 🚨 Breaking Changes
 - Database moved from `/tmp` to `~/.claude-ipc-data` for security
@@ -38,7 +38,7 @@ All notable changes to the Claude IPC MCP project will be documented in this fil
 - Session token validation issues with outdated client scripts
 - Security vulnerabilities identified in professional audit
 
-## [1.1.0] - 2025-01-09
+## [1.1.0] - 2025-07-09
 
 ### Added
 - **SQLite Message Persistence**: Messages now persist across server restarts
@@ -59,7 +59,7 @@ All notable changes to the Claude IPC MCP project will be documented in this fil
 - Automatic cleanup of messages older than 7 days for unregistered instances
 - Backward compatible - works with existing clients
 
-## [1.0.0] - 2025-01-06
+## [1.0.0] - 2025-07-06
 
 ### Added
 - Initial release with session-based authentication

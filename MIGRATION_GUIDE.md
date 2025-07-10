@@ -133,4 +133,4 @@ Open an issue on [GitHub](https://github.com/jdez427/claude-ipc-mcp/issues) with
 
 ---
 
-*Migration guide for Claude IPC MCP v2.0.0 - Last updated: 2025-01-10*
+*Migration guide for Claude IPC MCP v2.0.0 - Last updated: 2025-07-10*
