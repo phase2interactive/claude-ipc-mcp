@@ -140,10 +140,15 @@ tell everyone: meeting starting now
 - Survives crashes with auto-recovery
 - Messages queue while you're offline
 
-### Message Persistence
-- In-memory with crash recovery
-- Undelivered messages kept for 7 days
-- Delivered messages cleared after reading
+### SQLite Message Persistence (NEW!)
+- **Database Location**: `/tmp/ipc-messages.db`
+- **Automatic Recovery**: Database survives server crashes and restarts
+- **Message Durability**: All messages saved to disk immediately
+- **Unread Messages**: Automatically loaded when new server starts
+- **Instance Memory**: Remembers all registered instances
+- **Session Persistence**: Authentication tokens preserved
+- **Zero Configuration**: Works automatically, no setup needed
+- **Shared Database**: All instances on system share same message store
 
 ## 🎯 Smart Features
 

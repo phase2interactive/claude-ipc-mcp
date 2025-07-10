@@ -8,12 +8,16 @@ import asyncio
 import json
 import logging
 import socket
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Tuple
 import sys
 import os
 import threading
 import time
+import sqlite3
+import hashlib
+import secrets
+from pathlib import Path
 
 from mcp.server import Server
 from mcp.types import (
@@ -32,8 +36,39 @@ HEARTBEAT_INTERVAL = 30  # seconds
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+class RateLimiter:
+    """Simple in-memory rate limiter"""
+    def __init__(self, max_requests: int = 100, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.requests = {}  # instance_id -> list of timestamps
+        self.lock = threading.Lock()
+    
+    def is_allowed(self, instance_id: str) -> bool:
+        """Check if request is allowed under rate limit"""
+        with self.lock:
+            now = time.time()
+            
+            # Initialize if needed
+            if instance_id not in self.requests:
+                self.requests[instance_id] = []
+            
+            # Remove old requests outside window
+            self.requests[instance_id] = [
+                ts for ts in self.requests[instance_id] 
+                if now - ts < self.window_seconds
+            ]
+            
+            # Check if under limit
+            if len(self.requests[instance_id]) >= self.max_requests:
+                return False
+            
+            # Record this request
+            self.requests[instance_id].append(now)
+            return True
+
 class MessageBroker:
-    """Message broker that runs as a separate thread"""
+    """Message broker that runs as a separate thread with SQLite persistence"""
     def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
@@ -48,7 +83,262 @@ class MessageBroker:
         # Session management for security
         self.sessions: Dict[str, Dict[str, Any]] = {}  # session_token -> {instance_id, created_at}
         self.instance_sessions: Dict[str, str] = {}  # instance_id -> session_token
+        # Rate limiting
+        self.rate_limiter = RateLimiter(max_requests=100, window_seconds=60)
         
+        # SQLite persistence - secure location
+        self.db_dir = os.path.expanduser("~/.claude-ipc-data")
+        self.db_path = os.path.join(self.db_dir, "messages.db")
+        self._init_database()
+        self._load_from_database()
+        
+    def _init_database(self):
+        """Initialize SQLite database with required tables"""
+        try:
+            # Create secure directory if it doesn't exist
+            os.makedirs(self.db_dir, 0o700, exist_ok=True)
+            
+            # Create database connection
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Set secure permissions on database file
+            if os.path.exists(self.db_path):
+                os.chmod(self.db_path, 0o600)
+            
+            # Messages table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    from_id TEXT NOT NULL,
+                    to_id TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    timestamp TEXT NOT NULL,
+                    data TEXT,
+                    summary TEXT,
+                    large_file_path TEXT,
+                    read_flag INTEGER DEFAULT 0
+                )
+            ''')
+            
+            # Instances table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS instances (
+                    instance_id TEXT PRIMARY KEY,
+                    last_seen TEXT NOT NULL
+                )
+            ''')
+            
+            # Sessions table - now with hashed tokens and expiration
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS sessions (
+                    session_token_hash TEXT PRIMARY KEY,
+                    instance_id TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL
+                )
+            ''')
+            
+            # Name history table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS name_history (
+                    old_name TEXT PRIMARY KEY,
+                    new_name TEXT NOT NULL,
+                    changed_at TEXT NOT NULL
+                )
+            ''')
+            
+            conn.commit()
+            conn.close()
+            logger.info(f"SQLite database initialized at {self.db_path}")
+        except Exception as e:
+            logger.error(f"Failed to initialize database: {e}")
+            # Fall back to in-memory only if DB fails
+            self.db_path = None
+    
+    def _load_from_database(self):
+        """Load existing messages and instances from database"""
+        if not self.db_path:
+            return
+            
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Load unread messages
+            cursor.execute('''
+                SELECT from_id, to_id, content, timestamp, data, summary, large_file_path
+                FROM messages
+                WHERE read_flag = 0
+                ORDER BY timestamp
+            ''')
+            
+            for row in cursor.fetchall():
+                from_id, to_id, content, timestamp, data, summary, large_file_path = row
+                
+                # Reconstruct message in the expected format
+                msg_content = {"content": content}
+                if data:
+                    msg_content["data"] = json.loads(data)
+                
+                msg_data = {
+                    'from': from_id,
+                    'to': to_id,
+                    'timestamp': timestamp,
+                    'message': msg_content
+                }
+                
+                # Add extra fields if present
+                if summary:
+                    msg_data['summary'] = summary
+                if large_file_path:
+                    msg_data['large_file_path'] = large_file_path
+                
+                if to_id not in self.queues:
+                    self.queues[to_id] = []
+                self.queues[to_id].append(msg_data)
+            
+            # Load active instances
+            cursor.execute('SELECT instance_id, last_seen FROM instances')
+            for row in cursor.fetchall():
+                instance_id, last_seen = row
+                self.instances[instance_id] = datetime.fromisoformat(last_seen)
+            
+            # Load sessions - Note: we store hashes, not raw tokens
+            # We'll need to handle validation differently now
+            # For now, just track which instances have active sessions
+            cursor.execute('''
+                SELECT instance_id, expires_at 
+                FROM sessions 
+                WHERE expires_at > ?
+            ''', (datetime.now().isoformat(),))
+            
+            active_instances = set()
+            for row in cursor.fetchall():
+                instance_id, expires_at = row
+                active_instances.add(instance_id)
+            
+            # Clean up expired sessions
+            cursor.execute('DELETE FROM sessions WHERE expires_at <= ?', 
+                         (datetime.now().isoformat(),))
+            conn.commit()
+            
+            # Load name history
+            cursor.execute('SELECT old_name, new_name, changed_at FROM name_history')
+            for row in cursor.fetchall():
+                old_name, new_name, changed_at = row
+                self.name_history[old_name] = (new_name, datetime.fromisoformat(changed_at))
+            
+            conn.close()
+            logger.info(f"Loaded {sum(len(q) for q in self.queues.values())} messages from database")
+        except Exception as e:
+            logger.error(f"Failed to load from database: {e}")
+    
+    def _save_message_to_db(self, from_id: str, to_id: str, msg_data: Dict[str, Any]):
+        """Save message to SQLite database"""
+        if not self.db_path:
+            return
+            
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            message = msg_data.get("message", {})
+            content = message.get("content", "")
+            data = message.get("data")
+            
+            # Extract summary and large file path if present
+            summary = None
+            large_file_path = None
+            if data and isinstance(data, dict):
+                if "large_message_file" in data:
+                    large_file_path = data["large_message_file"]
+                    # Extract summary from content
+                    if "Full content saved to:" in content:
+                        summary = content.split("Full content saved to:")[0].strip()
+            
+            cursor.execute('''
+                INSERT INTO messages (from_id, to_id, content, timestamp, data, summary, large_file_path)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                from_id,
+                to_id,
+                content,
+                msg_data["timestamp"],
+                json.dumps(data) if data else None,
+                summary,
+                large_file_path
+            ))
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Failed to save message to database: {e}")
+    
+    def _mark_messages_as_read(self, instance_id: str, message_ids: List[int]):
+        """Mark messages as read in the database"""
+        if not self.db_path or not message_ids:
+            return
+            
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            placeholders = ','.join('?' for _ in message_ids)
+            cursor.execute(f'''
+                UPDATE messages 
+                SET read_flag = 1 
+                WHERE to_id = ? AND id IN ({placeholders})
+            ''', [instance_id] + message_ids)
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Failed to mark messages as read: {e}")
+    
+    def _save_instance_to_db(self, instance_id: str):
+        """Save or update instance in database"""
+        if not self.db_path:
+            return
+            
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT OR REPLACE INTO instances (instance_id, last_seen)
+                VALUES (?, ?)
+            ''', (instance_id, datetime.now().isoformat()))
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Failed to save instance to database: {e}")
+    
+    def _save_session_to_db(self, session_token: str, instance_id: str):
+        """Save session to database"""
+        if not self.db_path:
+            return
+            
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Hash the token and set expiration (24 hours from now)
+            token_hash = self._hash_token(session_token)
+            now = datetime.now()
+            expires_at = now + timedelta(hours=24)
+            
+            cursor.execute('''
+                INSERT OR REPLACE INTO sessions (session_token_hash, instance_id, created_at, expires_at)
+                VALUES (?, ?, ?, ?)
+            ''', (token_hash, instance_id, now.isoformat(), expires_at.isoformat()))
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Failed to save session to database: {e}")
+    
     def _validate_instance_id(self, instance_id: str) -> bool:
         """Validate instance ID for security"""
         import re
@@ -56,6 +346,12 @@ class MessageBroker:
         if not instance_id or len(instance_id) > 32:
             return False
         return bool(re.match(r'^[a-zA-Z0-9_-]+$', instance_id))
+    
+    def _hash_token(self, token: str) -> str:
+        """Hash a session token for secure storage"""
+        # Use SHA-256 with a salt for security
+        salt = "claude-ipc-mcp-v2"  # In production, use unique salt per deployment
+        return hashlib.sha256(f"{salt}:{token}".encode()).hexdigest()
         
     def start(self):
         """Start the message broker server"""
@@ -150,6 +446,24 @@ class MessageBroker:
                     self.queues[instance_id] = unexpired_messages
                 else:
                     del self.queues[instance_id]
+        
+        # Also clean database
+        if self.db_path:
+            try:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                
+                # Delete old messages for unregistered instances
+                cursor.execute('''
+                    DELETE FROM messages 
+                    WHERE datetime(timestamp) < datetime('now', '-7 days')
+                    AND to_id NOT IN (SELECT instance_id FROM instances)
+                ''')
+                
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                logger.error(f"Failed to clean expired messages from database: {e}")
     
     def _resolve_name(self, name: str) -> str:
         """Resolve a name through forwarding history"""
@@ -188,14 +502,22 @@ class MessageBroker:
     
     def _save_large_message(self, from_id: str, to_id: str, content: str) -> str:
         """Save large message to file and return file path"""
-        # Sanitize IDs to prevent path traversal
-        safe_from = os.path.basename(from_id).replace("/", "_").replace("\\", "_")
-        safe_to = os.path.basename(to_id).replace("/", "_").replace("\\", "_")
+        # Validate instance IDs first
+        if not self._validate_instance_id(from_id) or not self._validate_instance_id(to_id):
+            raise ValueError("Invalid instance ID for file path")
+        
+        # Additional sanitization for filenames
+        safe_from = from_id.replace("/", "_").replace("\\", "_")
+        safe_to = to_id.replace("/", "_").replace("\\", "_")
         
         # Create timestamp-based filename
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         filename = f"{timestamp}_{safe_from}_{safe_to}_message.md"
-        filepath = f"/tmp/ipc-messages/large-messages/{filename}"
+        
+        # Use secure directory for large messages
+        large_msg_dir = os.path.join(self.db_dir, "large-messages")
+        os.makedirs(large_msg_dir, 0o700, exist_ok=True)
+        filepath = os.path.join(large_msg_dir, filename)
         
         # Calculate size in KB
         size_kb = len(content.encode('utf-8')) / 1024
@@ -212,9 +534,11 @@ Size: {size_kb:.1f}KB
 """
         
         try:
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            # Directory already created with secure permissions above
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(file_content)
+            # Set secure permissions on the file
+            os.chmod(filepath, 0o600)
             return filepath
         except Exception as e:
             logger.error(f"Failed to save large message: {e}")
@@ -230,12 +554,34 @@ Size: {size_kb:.1f}KB
         if not session_token:
             return None
             
-        session = self.sessions.get(session_token)
-        if not session:
+        # Hash the provided token to compare with database
+        token_hash = self._hash_token(session_token)
+        
+        # Check database for valid session
+        if not self.db_path:
             return None
             
-        # Session is valid, return the instance_id
-        return session["instance_id"]
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Check if token exists and is not expired
+            cursor.execute('''
+                SELECT instance_id 
+                FROM sessions 
+                WHERE session_token_hash = ? AND expires_at > ?
+            ''', (token_hash, datetime.now().isoformat()))
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result:
+                return result[0]  # Return instance_id
+            return None
+            
+        except Exception as e:
+            logger.error(f"Session validation error: {e}")
+            return None
                 
     def _process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Process a broker request"""
@@ -252,6 +598,10 @@ Size: {size_kb:.1f}KB
                     request["from_id"] = instance_id
                 if "instance_id" in request:
                     request["instance_id"] = instance_id
+                    
+                # Check rate limit for authenticated requests
+                if not self.rate_limiter.is_allowed(instance_id):
+                    return {"status": "error", "message": "Rate limit exceeded. Please wait before sending more requests."}
             
             if action == "register":
                 instance_id = request["instance_id"]
@@ -259,6 +609,10 @@ Size: {size_kb:.1f}KB
                 # Validate instance ID format
                 if not self._validate_instance_id(instance_id):
                     return {"status": "error", "message": "Invalid instance ID format. Use 1-32 alphanumeric characters, hyphens, or underscores."}
+                
+                # Rate limit registration attempts (use IP or a special key)
+                if not self.rate_limiter.is_allowed(f"register_{instance_id}"):
+                    return {"status": "error", "message": "Too many registration attempts. Please wait."}
                 
                 # Validate auth token (shared secret)
                 auth_token = request.get("auth_token")
@@ -270,18 +624,14 @@ Size: {size_kb:.1f}KB
                         return {"status": "error", "message": "Invalid auth token"}
                 
                 # Generate session token
-                import secrets
                 session_token = secrets.token_urlsafe(32)
-                
-                # Store session
-                self.sessions[session_token] = {
-                    "instance_id": instance_id,
-                    "created_at": datetime.now()
-                }
-                self.instance_sessions[instance_id] = session_token
                 
                 # Register instance
                 self.instances[instance_id] = datetime.now()
+                
+                # Save to database
+                self._save_instance_to_db(instance_id)
+                self._save_session_to_db(session_token, instance_id)
                 
                 # Preserve existing queue or create new one
                 if instance_id not in self.queues:
@@ -350,6 +700,9 @@ Size: {size_kb:.1f}KB
                 }
                 self.queues[resolved_to].append(msg_data)
                 
+                # Save to SQLite
+                self._save_message_to_db(from_id, resolved_to, msg_data)
+                
                 if forwarded:
                     return {"status": "ok", "message": f"Message forwarded from {to_id} to {resolved_to}"}
                 elif future_delivery:
@@ -371,6 +724,10 @@ Size: {size_kb:.1f}KB
                             "message": message
                         }
                         self.queues[instance_id].append(msg_data)
+                        
+                        # Save to SQLite
+                        self._save_message_to_db(from_id, instance_id, msg_data)
+                        
                         count += 1
                         
                 return {"status": "ok", "message": f"Broadcast to {count} instances"}
@@ -387,6 +744,26 @@ Size: {size_kb:.1f}KB
                     
                 messages = self.queues[resolved_id]
                 self.queues[resolved_id] = []
+                
+                # Mark messages as read in database
+                if self.db_path and messages:
+                    try:
+                        conn = sqlite3.connect(self.db_path)
+                        cursor = conn.cursor()
+                        
+                        # Get message IDs to mark as read
+                        for msg in messages:
+                            cursor.execute('''
+                                UPDATE messages 
+                                SET read_flag = 1 
+                                WHERE to_id = ? AND timestamp = ? AND read_flag = 0
+                            ''', (resolved_id, msg.get("timestamp")))
+                        
+                        conn.commit()
+                        conn.close()
+                    except Exception as e:
+                        logger.error(f"Failed to mark messages as read: {e}")
+                
                 return {"status": "ok", "messages": messages}
                 
             elif action == "list":
