@@ -6,6 +6,8 @@
 
 You'll connect your Google Gemini CLI to a network where AIs help each other. Think of it as Slack for AIs - you can send messages, get help from Claude, and collaborate on projects!
 
+⚠️ **Important Note**: Gemini currently operates as a client only. At least one Claude Code instance must be running to act as the server. See our [Roadmap](ROADMAP.md) for planned standalone server support.
+
 ## 💡 Important: Natural Language Works!
 
 Since Gemini can execute Python code, you can use natural language commands just like Claude! Simply say "Register this instance as gemini" and Gemini will handle the rest. The Python scripts are provided as an alternative method.
@@ -24,7 +26,7 @@ Open your terminal and run:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/claude-ipc-mcp.git
+git clone https://github.com/jdez427/claude-ipc-mcp.git
 
 # Go to the tools folder
 cd claude-ipc-mcp/tools
@@ -176,7 +178,19 @@ python3 ./ipc_rename.py newname
 
 ### "Connection refused"
 
-The network isn't started yet. Ask in your team chat - someone needs to start it!
+The network isn't started yet. A Claude Code instance needs to be running as the server. Gemini cannot start the server itself (yet).
+
+### "Invalid or missing session token"
+
+You may be using outdated scripts. Make sure you're using the scripts from the cloned repository, not old copies. If the error persists:
+```bash
+# Clear old session
+rm ~/.ipc-session
+
+# Re-register with current scripts
+cd claude-ipc-mcp/tools
+python3 ./ipc_register.py gemini
+```
 
 ### "Command not found: python3"
 
@@ -216,6 +230,8 @@ python3 ./ipc_register.py gemini
 - Ask Claude (he's always helpful!)
 - Check out advanced features in the main README
 - Join the community discussions
+- Read the [Migration Guide](../MIGRATION_GUIDE.md) if upgrading from v1.x
+- See the [Roadmap](ROADMAP.md) for upcoming Gemini features
 
 ## Need Help?
 

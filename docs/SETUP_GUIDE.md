@@ -24,7 +24,8 @@ Claude IPC MCP enables AI assistants to communicate with each other through a sh
 ## Prerequisites
 
 ### Required Software
-- **Python 3.7+** (check with `python3 --version`)
+- **Python 3.12+** (check with `python3 --version`)
+- **UV Package Manager** (modern Python dependency management)
 - **Git** (for cloning the repository)
 - **Claude Code** (for MCP integration) OR
 - **Any AI with Python access** (Gemini, ChatGPT Code Interpreter, etc.)
@@ -32,7 +33,8 @@ Claude IPC MCP enables AI assistants to communicate with each other through a sh
 ### System Requirements
 - **OS**: Windows (WSL), Linux, macOS
 - **Network**: Localhost TCP port 9876 available
-- **Storage**: ~10MB for code + space for message logs
+- **Storage**: ~10MB for code + space for SQLite database and message logs
+- **Database**: SQLite (included with Python)
 
 ## Security Configuration
 
@@ -90,18 +92,26 @@ Leave `IPC_SHARED_SECRET` unset. System runs in open mode - anyone can connect.
    cd claude-ipc-mcp
    ```
 
-2. **Set your shared secret** (see Security Configuration above)
-
-3. **Install the MCP server:**
+2. **Install UV (if not already installed):**
    ```bash
-   # Option 1: Use install script
-   ./scripts/install-mcp.sh
-   
-   # Option 2: Manual install
-   claude mcp add claude-ipc -s user -- python /absolute/path/to/claude_ipc_server.py
+   curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
-4. **Restart Claude Code** to load the MCP
+3. **Set your shared secret** (see Security Configuration above)
+
+4. **Install dependencies and MCP:**
+   ```bash
+   # Clean up any old installations first
+   rm -rf venv/ .venv/
+   
+   # Install with UV
+   uv sync
+   
+   # Install the MCP
+   ./scripts/install-mcp.sh
+   ```
+
+5. **Restart Claude Code completely** (exit and start fresh - don't use --continue)
 
 ### For Gemini/Python AIs
 
@@ -118,16 +128,23 @@ Leave `IPC_SHARED_SECRET` unset. System runs in open mode - anyone can connect.
    chmod +x *.py
    ```
 
-4. **Test Python access:**
+4. **Install UV and dependencies:**
    ```bash
-   python3 --version  # Should be 3.7+
+   # Install UV
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   
+   # Install dependencies
+   uv sync
+   
+   # Test Python version
+   python3 --version  # Should be 3.12+
    ```
 
 ### For Other CLI AIs
 
 Any AI that can run Python scripts can participate:
 
-1. **Ensure Python 3.7+ is available**
+1. **Ensure Python 3.12+ and UV are available**
 2. **Set the shared secret in the AI's environment**
 3. **Use the scripts in the `tools/` directory**
 
@@ -245,6 +262,31 @@ python3 /path/to/script.py  # Instead of ./script.py
 
 **Cause**: Instance names don't match exactly
 **Fix**: Instance names are case-sensitive. "Fred" ≠ "fred"
+
+### MCP Tools Not Available After Install
+
+**Cause**: Claude Code session needs complete restart
+**Fix**: 
+1. Exit Claude Code completely (not just Ctrl+C)
+2. Start a fresh session with `claude`
+3. Don't use `--continue` or `--resume` flags
+
+### Old Installation Interfering
+
+**Cause**: Previous pip/venv installation conflicting with UV
+**Fix**:
+1. Remove old virtual environments: `rm -rf venv/ .venv/`
+2. Delete old requirements.txt if present
+3. Run `uv sync` to reinstall with UV
+
+### SQLite Database Issues
+
+**Location**: `/tmp/ipc-messages.db`
+**Fix**:
+1. Check permissions: `ls -la /tmp/ipc-messages.db`
+2. Ensure /tmp is writable: `touch /tmp/test-write`
+3. Messages persist across server restarts automatically
+4. Database is shared by all IPC instances on the system
 
 ## Best Practices
 
