@@ -97,12 +97,21 @@ ls -la /tmp/claude-ipc-mcp/auto_check_trigger
 1. Sender → MCP tool → Broker client → TCP socket → Broker server
 2. Broker server → Message queue → Recipient's check request
 3. Large messages (>10KB) → Saved to disk → Path in message
+4. All messages → SQLite database for persistence
 
-### Server Lifecycle
+### Server Lifecycle & Persistence
 - Server starts on first registration
 - Server dies when that AI exits
-- Messages in memory are lost on server exit
-- New AI can become server by starting fresh
+- **NEW**: Messages persist in SQLite database at `/tmp/ipc-messages.db`
+- **NEW**: New server loads unread messages from database on startup
+- **NEW**: Instance registrations and session tokens are preserved
+- **NEW**: Read messages are marked and not reloaded
+
+### Database Schema
+- **messages**: Stores all messages with read/unread status
+- **instances**: Tracks registered instances and last seen time
+- **sessions**: Preserves authentication tokens
+- **name_history**: Maintains forwarding records
 
 ## Important Paths
 
