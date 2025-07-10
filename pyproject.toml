@@ -1,6 +1,6 @@
 [project]
 name = "claude-ipc-mcp"
-version = "1.0.0"
+version = "2.0.0"
 description = "AI-to-AI communication using Model Context Protocol"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -22,9 +22,9 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/claude-ipc-mcp"
-"Bug Tracker" = "https://github.com/yourusername/claude-ipc-mcp/issues"
-"Documentation" = "https://github.com/yourusername/claude-ipc-mcp/docs"
+"Homepage" = "https://github.com/jdez427/claude-ipc-mcp"
+"Bug Tracker" = "https://github.com/jdez427/claude-ipc-mcp/issues"
+"Documentation" = "https://github.com/jdez427/claude-ipc-mcp/tree/main/docs"
 
 [project.scripts]
 claude-ipc-mcp = "claude_ipc_server:main"
